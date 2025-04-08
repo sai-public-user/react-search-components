@@ -1,11 +1,21 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { usePageTextSearch } from "./usePageTextSearch";
 
 export const PageTextSearchBar = () => {
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [hoverId, setHoverId] = useState(null);
-  const { matches, scrollToMatch } = usePageTextSearch(query);
+  const { matches, scrollToMatch } = usePageTextSearch(debouncedQuery);
+
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, 300);
+
+    return () => {
+      clearTimeout(timerId);
+    };
+  }, [query]);
 
   return (
     <div
@@ -20,7 +30,7 @@ export const PageTextSearchBar = () => {
         borderRadius: "0.5rem",
         boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
         width: 300,
-        fontFamily: "Arial, sans-serif"
+        fontFamily: "Arial, sans-serif",
       }}
     >
       <input
@@ -33,11 +43,19 @@ export const PageTextSearchBar = () => {
           padding: "8px",
           marginBottom: "8px",
           border: "1px solid #ccc",
-          borderRadius: "4px"
+          borderRadius: "4px",
         }}
       />
       {matches.length > 0 && (
-        <ul style={{ maxHeight: 200, overflowY: "auto", padding: 0, margin: 0, listStyle: "none" }}>
+        <ul
+          style={{
+            maxHeight: 200,
+            overflowY: "auto",
+            padding: 0,
+            margin: 0,
+            listStyle: "none",
+          }}
+        >
           {matches.map((match) => (
             <li
               key={match.id}
@@ -53,8 +71,9 @@ export const PageTextSearchBar = () => {
               style={{
                 padding: "6px 8px",
                 cursor: "pointer",
-                backgroundColor: hoverId === match.id ? "#f0f0f0" : "transparent",
-                borderBottom: "1px solid #eee"
+                backgroundColor:
+                  hoverId === match.id ? "#f0f0f0" : "transparent",
+                borderBottom: "1px solid #eee",
               }}
               title={match.text}
             >
@@ -63,7 +82,7 @@ export const PageTextSearchBar = () => {
           ))}
         </ul>
       )}
-      {query && matches.length === 0 && (
+      {debouncedQuery && matches.length === 0 && (
         <div style={{ fontStyle: "italic", fontSize: "0.9rem", color: "#777" }}>
           No matches found
         </div>
